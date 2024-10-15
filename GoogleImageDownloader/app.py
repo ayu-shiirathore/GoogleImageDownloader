@@ -15,8 +15,8 @@ app = Flask(__name__)
 SERP_API_KEY = 'e3f8d918ab45f7e12af57ba7ac200d5f1a5f7dda79a1c6125171e09a5b73c200'
 
 # Your email configuration (Use environment variables for security)
-EMAIL_USER = 'ayurathore2307@gmail.com'
-EMAIL_PASSWORD = 'hey its ayushi'
+EMAIL_USER = 'samplemashup12@gmail.com'
+EMAIL_PASSWORD ='vcgdcnxfxqiufmgv'
 
 # Route for the homepage
 @app.route('/')
@@ -68,6 +68,48 @@ def download_page(query):
     return render_template('downloads.html', images=images, query=query)
 
 # Route to send the images to an email
+# @app.route('/send_email', methods=['POST'])
+# def send_email():
+#     query = request.form.get('query')
+#     email = request.form.get('email')
+#     query_dir = query.replace(' ', '_')
+#     download_path = os.path.join('static', 'downloads', query_dir)
+#     images = os.listdir(download_path)
+#
+#     if email and images:
+#         try:
+#             # Set up the email
+#             msg = MIMEMultipart()
+#             msg['From'] = EMAIL_USER
+#             msg['To'] = email
+#             msg['Subject'] = f"Downloaded Images for {query}"
+#
+#             body = f"Attached are the images for your search query: {query}."
+#             msg.attach(MIMEText(body, 'plain'))
+#
+#             # Attach the images
+#             for image in images:
+#                 image_path = os.path.join(download_path, image)
+#                 attachment = open(image_path, "rb")
+#                 part = MIMEBase('application', 'octet-stream')
+#                 part.set_payload(attachment.read())
+#                 encoders.encode_base64(part)
+#                 part.add_header('Content-Disposition', f"attachment; filename= {image}")
+#                 msg.attach(part)
+#
+#             # Sending the email
+#             server = smtplib.SMTP('smtp.gmail.com', 587)
+#             server.starttls()
+#             server.login(EMAIL_USER, EMAIL_PASSWORD)
+#             text = msg.as_string()
+#             server.sendmail(EMAIL_USER, email, text)
+#             server.quit()
+#
+#             return f"Email successfully sent to {email}!"
+#         except Exception as e:
+#             return f"Error: {str(e)}"
+#     return "Email address or images not found."
+# Route to send the images to an email
 @app.route('/send_email', methods=['POST'])
 def send_email():
     query = request.form.get('query')
@@ -90,26 +132,27 @@ def send_email():
             # Attach the images
             for image in images:
                 image_path = os.path.join(download_path, image)
-                attachment = open(image_path, "rb")
-                part = MIMEBase('application', 'octet-stream')
-                part.set_payload(attachment.read())
-                encoders.encode_base64(part)
-                part.add_header('Content-Disposition', f"attachment; filename= {image}")
-                msg.attach(part)
+                with open(image_path, "rb") as attachment:
+                    part = MIMEBase('application', 'octet-stream')
+                    part.set_payload(attachment.read())
+                    encoders.encode_base64(part)
+                    part.add_header('Content-Disposition', f"attachment; filename={image}")
+                    msg.attach(part)
 
             # Sending the email
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.login(EMAIL_USER, EMAIL_PASSWORD)
-            text = msg.as_string()
-            server.sendmail(EMAIL_USER, email, text)
-            server.quit()
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(EMAIL_USER, EMAIL_PASSWORD)
+                server.sendmail(EMAIL_USER, email, msg.as_string())
 
             return f"Email successfully sent to {email}!"
         except Exception as e:
             return f"Error: {str(e)}"
     return "Email address or images not found."
 
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
 
